@@ -18,7 +18,6 @@ var statsConsole = {
         Memory.stats["cpu.getUsed"] = Memory.profilingData["total"];                // Total for external stats
         Memory.stats["cpu.current"] = Game.cpu.getUsed();                           // What we currently used
         
-        
         // Todo: Get this mess into one array
         for (let i = 100; i > 0; i--) {                                             // Save up the last 100 CPU used stats
             if (i <= 1) {
@@ -26,6 +25,14 @@ var statsConsole = {
             } else {
                 Memory.stats["cpu." + i] = Memory.stats["cpu." + (i - 1)];
             }
+        }
+
+        if (Memory.stats.logs == undefined){
+            Memory.stats.logs[0] = ["Logging Initialized!",3];
+        }
+
+        if (Memory.stats.logs && Memory.stats.logs.length >= 11){
+            Memory.stats.logs.shift(); // remove the first thing on the list as it is the oldest
         }
         
     },
@@ -50,7 +57,6 @@ var statsConsole = {
         let dynamic = true;                                 // Set to false if you want this to not scale vertically
         // End of Settings
         
-
         for (let i = 2; i < 100; i++) {
             let lastNumber = Memory.stats["cpu." + (i - 1)];
             let firstNumber = Memory.stats["cpu." + i];
@@ -153,7 +159,6 @@ var statsConsole = {
         cpuStats = cpuStats + corners + _.repeat(hBar, boxWidth + 1) + corners;
         
         
-        
         // ================== Build up Room stats ===============================
         
         title = "Stats";            // Name of Stats block
@@ -204,7 +209,7 @@ var statsConsole = {
         let outputCpu = cpuStats.split("\n");
         let outputStats = Stats.split("\n");
         let output = "";
-
+        
         if (outputCpu.length == outputStats.length) {
             for (let i = 0; i < outputCpu.length && i < outputStats.length; i++) {
                 output = output + outputCpu[i] + " " + outputStats[i] + "\n";
@@ -249,6 +254,60 @@ var statsConsole = {
             }
         }
         return geohashArray;
+    },
+    log: function (message, severity = 3) {
+        Memory.stats.logs.push([message,severity]);
+    },
+    displayLogs: function () {
+        // Settings for Logs Display
+        let boxHeight = Memory.stats.logs.length - 1;
+        let boxWidth = 150;
+        
+        let addSpace = 0;
+        if (!(boxWidth % 2 === 0)){
+            addSpace = 1;
+        }
+
+        let title = " Logs ";
+        let corners = "+";
+        let hBar = "-";
+        let vbar = "|";
+        let spacing = " ";
+        // End of Settings
+    
+        var colors = {
+            '5': '#ff0066',
+            '4': '#e65c00',
+            '3': '#809fff',
+            '2': '#999999',
+            '1': '#737373',
+            '0': '#666666',
+            'highlight': '#ffff00',
+        };
+    
+
+        var outputLog = corners + hBar.repeat(((boxWidth - title.length) / 2)) + title + hBar.repeat(((boxWidth - title.length) / 2) + addSpace) + corners + "\n";
+        for (let i = 0; i < boxHeight; i++) { // Y coordinate |
+            let severity = Memory.stats.logs[i][0,1];
+            if (severity > 5) {
+                seveirty = 5;
+            } else if (severity < 0) {
+                severity = 0;
+            } else if (!Number.isInteger(severity)) {
+                severity = 3;
+            } else if (severity == "highlight"){
+                outputLog = outputLog + vbar + "<font color='" + colors[severity] + "' severity='" + severity + "'>" + Memory.stats.logs[i][0,0] +
+                    "</font>" + spacing.repeat(boxWidth - Memory.stats.logs[i][0,0].length) + vbar + "\n";
+            }
+    
+            
+            outputLog = outputLog + vbar + "<font color='" + colors[severity] + "' severity='" + severity + "'>" + Memory.stats.logs[i][0,0] +
+                "</font>" + spacing.repeat(boxWidth - Memory.stats.logs[i][0,0].length) + vbar + "\n";
+            //outputLog = outputLog + vbar + spacing.repeat(boxWidth) + vbar + "\n";
+        }
+    
+        outputLog = outputLog + corners + hBar.repeat(boxWidth) + corners + "\n";
+        return outputLog;
     }
 };
 
