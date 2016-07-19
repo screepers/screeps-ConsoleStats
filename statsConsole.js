@@ -48,7 +48,7 @@ var statsConsole = {
         let upperBound = cpuLimit;
         let lowerBound = 0;
         let dynamic = true;                                 // Set to false if you want this to not scale vertically
-        // end of settings
+        // End of Settings
         
 
         for (let i = 2; i < 100; i++) {
@@ -105,19 +105,18 @@ var statsConsole = {
         let spawns = Game.spawns;
         let cpuLimit = Game.cpu.limit;
         let cpuBucket = Game.cpu.bucket;
-        let cpuCreepManager = Memory.profilingData["bCreepManagers"];
-        let cpuSetupRoles = Memory.profilingData["eSetupRoles"];
-        let cpuCreepActions = Memory.profilingData["fCreeps"];
-        let cpuInit = Memory.profilingData["aStart"];
-        let cpuLinks = Memory.profilingData["dLinks"];
-        let cpuTowers = Memory.profilingData["cTowers"];
+        let cpuCreepManager = Memory.stats["cpu.CreepManagers"];
+        let cpuSetupRoles = Memory.stats["cpu.SetupRoles"];
+        let cpuCreepActions = Memory.stats["cpu.Creeps"];
+        let cpuInit = Memory.stats["cpu.Start"];
+        let cpuLinks = Memory.stats["cpu.Links"];
+        let cpuTowers = Memory.stats["cpu.Towers"];
         let cpuTotal = Game.cpu.getUsed();
         for (let i = cpuAvgCount; i > 0; i--) {
             cpuAverage = cpuAverage + Memory.stats["cpu." + i];
         }
         cpuAverage = cpuAverage / cpuAvgCount;
         var spacesToEnd = function (count, len) {
-            //count = count.toString();
             return _.repeat(" ", (len - count.length));
         };
         let lineName = [
@@ -195,7 +194,6 @@ var statsConsole = {
         let Stats = corners + _.repeat(hBar, ((boxWidth - (spacing + title).length) / 2)) + spacing + title + spacing + _.repeat(hBar, ((boxWidth - (spacing + title).length) / 2)) + corners + "\n";
         for (let i = 0; i < secondLineName.length && i < secondLineStat.length; i++) {
             Stats = Stats + vbar + spacing + secondLineName[i] + spacesToEnd((spacing + secondLineName[i]).toString(), (boxWidth / 2)) + ":" + spacing + secondLineStat[i] + spacesToEnd((spacing + secondLineStat[i]).toString(), (boxWidth / 2)) + vbar + "\n";
-            //cpuStats = cpuStats + vbar + spacing + lineName[i] + spacesToEnd((spacing + lineName[i]).toString(), (boxWidth/2)) + ":" + spacing + lineStat[i] + spacesToEnd((spacing + lineStat[i]).toString(), (boxWidth/2)) + vbar + "\n";
         }
         Stats = Stats + corners + _.repeat(hBar, boxWidth + 1) + corners;
         
