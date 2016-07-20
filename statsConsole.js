@@ -27,12 +27,12 @@ var statsConsole = {
                 Memory.stats["cpu." + i] = Memory.stats["cpu." + (i - 1)];
             }
         }
-
-        if (Memory.stats.logs == undefined){
-            Memory.stats.logs[0] = ["Logging Initialized!",3];
+        
+        if (Memory.stats.logs == undefined) {
+            Memory.stats.logs[0] = ["Logging Initialized!", 3];
         }
-
-        if (Memory.stats.logs && Memory.stats.logs.length >= 11){
+        
+        if (Memory.stats.logs && Memory.stats.logs.length >= 11) {
             Memory.stats.logs.shift(); // remove the first thing on the list as it is the oldest
         }
         
@@ -41,7 +41,6 @@ var statsConsole = {
     displayHistogram: function () {
         
         let cpuLimit = Game.cpu.limit;
-        //let cpuTotal = Game.cpu.getUsed(); // Not needed
         // ================== CPU histogram ===================
         
         // Settings for CPU histogram
@@ -261,18 +260,19 @@ var statsConsole = {
         return geohashArray;
     },
     log: function (message, severity = 3) {
-        Memory.stats.logs.push([message,severity]);
+        Memory.stats.logs.push([message, severity]);
     },
     displayLogs: function () {
         // Settings for Logs Display
         let boxHeight = Memory.stats.logs.length - 1;
-        let boxWidth = 105;
-        
+        let boxWidth = 100; // Inside of the box
+        let borderWidth = 5;
+        boxWidth = boxWidth + borderWidth;
         let addSpace = 0;
-        if (!(boxWidth % 2 === 0)){
+        if (!(boxWidth % 2 === 0)) {
             addSpace = 1;
         }
-
+        
         let title = " Logs ";
         let leftTopCorner = "╔";
         let rightTopCorner = "╗";
@@ -282,7 +282,7 @@ var statsConsole = {
         let vbar = "║";
         let spacing = " ";
         // End of Settings
-    
+        
         var colors = {
             '5': '#ff0066',
             '4': '#e65c00',
@@ -292,28 +292,46 @@ var statsConsole = {
             '0': '#666666',
             'highlight': '#ffff00',
         };
-    
-
+        
+        
         var outputLog = leftTopCorner + hBar.repeat(((boxWidth - title.length) / 2)) + title + hBar.repeat(((boxWidth - title.length) / 2) + addSpace) + rightTopCorner + "\n";
         for (let i = 0; i < boxHeight; i++) { // Y coordinate |
-            let severity = Memory.stats.logs[i][0,1];
+            let severity = Memory.stats.logs[i][0, 1];
+            let htmlFontStartHighlight = "<font color='" + colors['highlight'] + "' type='highlight'>";
+            let htmlFontStart = "<font color='" + colors[severity] + "' severity='" + severity + "'>";
+            let htmlStart = "";
+            let htmlEnd = "</font>";
+            let message = Memory.stats.logs[i][0, 0];
             if (severity > 5) {
                 seveirty = 5;
             } else if (severity < 0) {
                 severity = 0;
             } else if (!Number.isInteger(severity)) {
                 severity = 3;
-            } else if (severity == "highlight"){
-                outputLog = outputLog + vbar + "<font color='" + colors[severity] + "' severity='" + severity + "'>" + Memory.stats.logs[i][0,0] +
-                    "</font>" + spacing.repeat(boxWidth - Memory.stats.logs[i][0,0].length) + vbar + "\n";
+            } else if (severity == "highlight") {
+                htmlStart = htmlFontStartHighlight;
+            } else {
+                htmlStart = htmlFontStart;
             }
-    
             
-            outputLog = outputLog + vbar + "<font color='" + colors[severity] + "' severity='" + severity + "'>" + Memory.stats.logs[i][0,0] +
-                "</font>" + spacing.repeat(boxWidth - Memory.stats.logs[i][0,0].length) + vbar + "\n";
-            //outputLog = outputLog + vbar + spacing.repeat(boxWidth) + vbar + "\n";
+            if (message.length > boxWidth) { // message is longer than boxWidth
+                outputLog = outputLog + vbar + htmlStart + message.substring(0, boxWidth - borderWidth) +
+                    htmlEnd + spacing.repeat(boxWidth - message.length) + vbar + "\n";
+                outputLog = outputLog + vbar + htmlStart + message.substring(boxWidth - borderWidth) +
+                    htmlEnd + spacing.repeat(boxWidth - message.length) + vbar + "\n";
+            } else if (message.length > boxWidth * 2) { // message is longer than boxWidth * 2
+                outputLog = outputLog + vbar + htmlStart + message.substring(0, boxWidth - borderWidth) +
+                    htmlEnd + spacing.repeat(boxWidth - message.length) + vbar + "\n";
+                outputLog = outputLog + vbar + htmlStart + message.substring(boxWidth - borderWidth, boxWidth * 2 - borderWidth) +
+                    htmlEnd + spacing.repeat(boxWidth - message.length) + vbar + "\n";
+                outputLog = outputLog + vbar + htmlStart + message.substring(boxWidth * 2 - borderWidth) +
+                    htmlEnd + spacing.repeat(boxWidth - message.length) + vbar + "\n";
+            } else { // If you message is longer that boxWidth you need to cut down on the length of your log messages.
+                outputLog = outputLog + vbar + htmlStart + message +
+                    htmlEnd + spacing.repeat(boxWidth - message.length) + vbar + "\n";
+            }
         }
-    
+        
         outputLog = outputLog + leftBottomCorner + hBar.repeat(boxWidth) + rightBottomCorner + "\n";
         return outputLog;
     }
