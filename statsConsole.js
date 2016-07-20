@@ -18,6 +18,7 @@ var statsConsole = {
         Memory.stats["cpu.getUsed"] = Memory.profilingData["total"];                // Total for external stats
         Memory.stats["cpu.current"] = Game.cpu.getUsed();                           // What we currently used
         
+        
         // Todo: Get this mess into one array
         for (let i = 100; i > 0; i--) {                                             // Save up the last 100 CPU used stats
             if (i <= 1) {
@@ -57,6 +58,7 @@ var statsConsole = {
         let dynamic = true;                                 // Set to false if you want this to not scale vertically
         // End of Settings
         
+        
         for (let i = 2; i < 100; i++) {
             let lastNumber = Memory.stats["cpu." + (i - 1)];
             let firstNumber = Memory.stats["cpu." + i];
@@ -69,7 +71,7 @@ var statsConsole = {
         
         // Todo: Maybe get this log into cpuChart
         console.log("Max: " + upperBound.toFixed(2) + ", Min: " + lowerBound.toFixed(2));
-        var cpuChart = cpuChart + corners + hBar.repeat(((boxWidth - title.length) / 2)) + title + hBar.repeat(((boxWidth - title.length) / 2)) + corners + "\n";
+        var cpuChart = corners + hBar.repeat(((boxWidth - title.length) / 2)) + title + hBar.repeat(((boxWidth - title.length) / 2)) + corners + "\n";
         for (let i = boxHeight; i > 1; i--) { // Y coordinate |
             let row = "";
             let putPoint = false;
@@ -102,9 +104,12 @@ var statsConsole = {
         let cpuAverage = 0;
         let boxWidth = 50;
         let title = " CPU ";
-        let corners = "+";
-        let hBar = "-";
-        let vbar = "|";
+        let leftTopCorner = "╔";
+        let rightTopCorner = "╗";
+        let leftBottomCorner = "╚";
+        let rightBottomCorner = "╝";
+        let hBar = "═";
+        let vbar = "║";
         
         let spacing = " ";
         let rooms = Game.rooms;
@@ -127,7 +132,7 @@ var statsConsole = {
         };
         let lineName = [
             "Usage",
-            "Usage (10 ticks/10)",
+            "Usage (Avg 10 ticks)",
             "Bucket",
             "Init",
             "Setup Roles",
@@ -152,11 +157,11 @@ var statsConsole = {
         // End of settings
         
         
-        let cpuStats = corners + _.repeat(hBar, ((boxWidth - title.length) / 2)) + title + _.repeat(hBar, ((boxWidth - title.length) / 2)) + corners + "\n";
+        let cpuStats = leftTopCorner + _.repeat(hBar, ((boxWidth - title.length) / 2)) + title + _.repeat(hBar, ((boxWidth - title.length) / 2)) + rightTopCorner + "\n";
         for (let i = 0; i < lineName.length && i < lineStat.length; i++) {
             cpuStats = cpuStats + vbar + spacing + lineName[i] + spacesToEnd((spacing + lineName[i]).toString(), (boxWidth / 2)) + ":" + spacing + lineStat[i] + spacesToEnd((spacing + lineStat[i]).toString(), (boxWidth / 2)) + vbar + "\n";
         }
-        cpuStats = cpuStats + corners + _.repeat(hBar, boxWidth + 1) + corners;
+        cpuStats = cpuStats + leftBottomCorner + _.repeat(hBar, boxWidth + 1) + rightBottomCorner;
         
         
         // ================== Build up Room stats ===============================
@@ -196,11 +201,11 @@ var statsConsole = {
             }
         }
         
-        let Stats = corners + _.repeat(hBar, ((boxWidth - (spacing + title).length) / 2)) + spacing + title + spacing + _.repeat(hBar, ((boxWidth - (spacing + title).length) / 2)) + corners + "\n";
+        let Stats = leftTopCorner + _.repeat(hBar, ((boxWidth - (spacing + title).length) / 2)) + spacing + title + spacing + _.repeat(hBar, ((boxWidth - (spacing + title).length) / 2)) + rightTopCorner + "\n";
         for (let i = 0; i < secondLineName.length && i < secondLineStat.length; i++) {
             Stats = Stats + vbar + spacing + secondLineName[i] + spacesToEnd((spacing + secondLineName[i]).toString(), (boxWidth / 2)) + ":" + spacing + secondLineStat[i] + spacesToEnd((spacing + secondLineStat[i]).toString(), (boxWidth / 2)) + vbar + "\n";
         }
-        Stats = Stats + corners + _.repeat(hBar, boxWidth + 1) + corners;
+        Stats = Stats + leftBottomCorner + _.repeat(hBar, boxWidth + 1) + rightBottomCorner;
         
         
         // ============= Now we combine both ==============
@@ -261,7 +266,7 @@ var statsConsole = {
     displayLogs: function () {
         // Settings for Logs Display
         let boxHeight = Memory.stats.logs.length - 1;
-        let boxWidth = 150;
+        let boxWidth = 105;
         
         let addSpace = 0;
         if (!(boxWidth % 2 === 0)){
@@ -269,9 +274,12 @@ var statsConsole = {
         }
 
         let title = " Logs ";
-        let corners = "+";
-        let hBar = "-";
-        let vbar = "|";
+        let leftTopCorner = "╔";
+        let rightTopCorner = "╗";
+        let leftBottomCorner = "╚";
+        let rightBottomCorner = "╝";
+        let hBar = "═";
+        let vbar = "║";
         let spacing = " ";
         // End of Settings
     
@@ -286,7 +294,7 @@ var statsConsole = {
         };
     
 
-        var outputLog = corners + hBar.repeat(((boxWidth - title.length) / 2)) + title + hBar.repeat(((boxWidth - title.length) / 2) + addSpace) + corners + "\n";
+        var outputLog = leftTopCorner + hBar.repeat(((boxWidth - title.length) / 2)) + title + hBar.repeat(((boxWidth - title.length) / 2) + addSpace) + rightTopCorner + "\n";
         for (let i = 0; i < boxHeight; i++) { // Y coordinate |
             let severity = Memory.stats.logs[i][0,1];
             if (severity > 5) {
@@ -306,7 +314,7 @@ var statsConsole = {
             //outputLog = outputLog + vbar + spacing.repeat(boxWidth) + vbar + "\n";
         }
     
-        outputLog = outputLog + corners + hBar.repeat(boxWidth) + corners + "\n";
+        outputLog = outputLog + leftBottomCorner + hBar.repeat(boxWidth) + rightBottomCorner + "\n";
         return outputLog;
     }
 };
