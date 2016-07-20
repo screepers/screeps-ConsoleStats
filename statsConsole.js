@@ -297,7 +297,7 @@ var statsConsole = {
         var outputLog = leftTopCorner + hBar.repeat(((boxWidth - title.length) / 2)) + title + hBar.repeat(((boxWidth - title.length) / 2) + addSpace) + rightTopCorner + "\n";
         for (let i = 0; i < boxHeight; i++) { // Y coordinate |
             let severity = Memory.stats.logs[i][0, 1];
-            let htmlFontStartHighlight = "<font color='" + this.colors['highlight'] + "' type='highlight'>";
+            let htmlFontStartHighlight = "<font color='" + colors['highlight'] + "' type='highlight'>";
             let htmlFontStart = "<font color='" + colors[severity] + "' severity='" + severity + "'>";
             let htmlStart = "";
             let htmlEnd = "</font>";
