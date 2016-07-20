@@ -3,7 +3,7 @@
 Display stats like this directly into your Screeps console:
 ![alt text][screen-cap1]
 
-[screen-cap1]: http://i.imgur.com/1BkhM1f.png "Sample Screen Capture"
+[screen-cap1]: http://i.imgur.com/FhuWMfa.png "Sample Screen Capture"
 
 # Notes
 
