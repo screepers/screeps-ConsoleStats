@@ -1,4 +1,4 @@
-var statsConsole = {
+﻿var statsConsole = {
     
     run: function () {
         
@@ -17,15 +17,13 @@ var statsConsole = {
         Memory.stats["cpu.stats"] = Memory.profilingData["stats"];                  // Your stats that is gathered out side Screeps
         Memory.stats["cpu.getUsed"] = Memory.profilingData["total"];                // Total for external stats
         Memory.stats["cpu.current"] = Game.cpu.getUsed();                           // What we currently used
+        Memory.stats["__cpu"].unshift(Game.cpu.getUsed());
         
-        
-        // Todo: Get this mess into one array
-        for (let i = 100; i > 0; i--) {                                             // Save up the last 100 CPU used stats
-            if (i <= 1) {
-                Memory.stats["cpu." + i] = Memory.stats["cpu.current"];
-            } else {
-                Memory.stats["cpu." + i] = Memory.stats["cpu." + (i - 1)];
-            }
+        if (!Memory.stats.__cpu && Memory.stats.__cpu == undefined) {
+            Memory.stats["__cpu"] = new Array([0,0]);
+        }
+        if(Memory.stats["__cpu"].length > 100 - 6){
+            Memory.stats["__cpu"].pop();
         }
         
         if (Memory.stats.logs == undefined) {
@@ -33,68 +31,16 @@ var statsConsole = {
         }
         
         if (Memory.stats.logs && Memory.stats.logs.length >= 11) {
-            Memory.stats.logs.shift(); // remove the first thing on the list as it is the oldest
+            for(let i = 0;i <= (Memory.stats.logs.length - 11);i++){
+                Memory.stats.logs.shift(); // remove the first thing on the list as it is the oldest
+            }
         }
         
     },
     
     displayHistogram: function () {
-        
-        let cpuLimit = Game.cpu.limit;
-        // ================== CPU histogram ===================
-        
-        // Settings for CPU histogram
-        let boxHeight = 40;
-        let boxWidth = 40;
-        let point = ".";
-        let title = " CPU (last " + boxWidth + " ticks) ";
-        let corners = "+";
-        let hBar = "-";
-        let vbar = "|";
-        let spacing = " ";
-        let upperBound = cpuLimit;
-        let lowerBound = 0;
-        let dynamic = true;                                 // Set to false if you want this to not scale vertically
-        // End of Settings
-        
-        
-        for (let i = 2; i < 100; i++) {
-            let lastNumber = Memory.stats["cpu." + (i - 1)];
-            let firstNumber = Memory.stats["cpu." + i];
-            if (firstNumber > lastNumber) {
-                upperBound = firstNumber;
-            } else if (firstNumber < lastNumber && dynamic) {
-                lowerBound = firstNumber;
-            }
-        }
-        
-        // Todo: Maybe get this log into cpuChart
-        console.log("Max: " + upperBound.toFixed(2) + ", Min: " + lowerBound.toFixed(2));
-        var cpuChart = corners + hBar.repeat(((boxWidth - title.length) / 2)) + title + hBar.repeat(((boxWidth - title.length) / 2)) + corners + "\n";
-        for (let i = boxHeight; i > 1; i--) { // Y coordinate |
-            let row = "";
-            let putPoint = false;
-            let columnCount = 0;
-            let rowCpu;
-            for (let j = boxWidth; j > 1; j--) { // X coordinate ---
-                let k = Memory.stats["cpu." + j];
-                if (k / upperBound * boxHeight <= i && k / upperBound * boxHeight > i - 1) {
-                    row = row + point;
-                    putPoint = true;
-                    rowCpu = k;
-                } else {
-                    row = row + spacing;
-                }
-            }
-            if (putPoint) {
-                columnCount++;
-                cpuChart = cpuChart + vbar + row + vbar + "..." + (rowCpu).toFixed(2) + "\n";
-            }
-        }
-        
-        cpuChart = cpuChart + corners + hBar.repeat(boxWidth - 1) + corners + "\n";
-        return cpuChart;
-        
+        var asciiChart = require("ascii-chart");
+        return asciiChart.chart(Memory.stats.__cpu,{width:100,height: 20});
     },
     displayStats: function () {
         
@@ -123,7 +69,7 @@ var statsConsole = {
         let cpuTowers = Memory.stats["cpu.Towers"];
         let cpuTotal = Game.cpu.getUsed();
         for (let i = cpuAvgCount; i > 0; i--) {
-            cpuAverage = cpuAverage + Memory.stats["cpu." + i];
+            cpuAverage = cpuAverage + Memory.stats.__cpu[i];
         }
         cpuAverage = cpuAverage / cpuAvgCount;
         var spacesToEnd = function (count, len) {
