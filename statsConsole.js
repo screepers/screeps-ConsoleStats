@@ -334,6 +334,236 @@ var statsConsole = {
         
         outputLog = outputLog + leftBottomCorner + hBar.repeat(boxWidth) + rightBottomCorner + "\n";
         return outputLog;
+    },
+    displayMaps: function () {
+        /*
+        This is purely educational
+        DO NOT RUN THIS. Especially if you have more than one map under your control.
+        
+        It chews up about 15-20 cpu per room.
+         */
+        if(false) {
+            //Define characters for map
+            
+            // This will blow up the console in bad ways. :/
+            /*
+             var spawn = "⌂";
+             var link = "Å";
+             var tower = "î";
+             var walls = "▓";
+             var constructedWalls = "░";
+             var creep = "☺";
+             var attackCreep = "♠";
+             var extension = "♂";
+             var road = "‼";
+             var rampart = "○";
+             var container = "▄";
+             var storage = "█";
+             var extractor = "¥";
+             var observer = "◘";
+             var powerspawn = "Σ";
+             var nuker = "Ω";
+             var swamp = "≈";
+             var plain = " ";
+             var exitNorth = "▲";
+             var exitSouth = "▼";
+             var exitEast = "◄";
+             var exitWest = "►";
+             var controller = "☼";
+             */
+    
+            var spawn = "S";
+            var link = "L";
+            var tower = "T";
+            var walls = "#";
+            var constructedWalls = "8";
+            var creep = "@";
+            var attackCreep = "&";
+            var extension = "o";
+            var road = "_";
+            var rampart = "O";
+            var container = "h";
+            var storage = "H";
+            var extractor = "X";
+            var observer = "Q";
+            var powerspawn = "P";
+            var nuker = "N";
+            var swamp = "~";
+            var plain = " ";
+            var exitNorth = "^";
+            var exitSouth = ":";
+            var exitEast = "<";
+            var exitWest = ">";
+            var controller = "C";
+    
+            let leftTopCorner = "╔";
+            let rightTopCorner = "╗";
+            let leftBottomCorner = "╚";
+            let rightBottomCorner = "╝";
+            let hBar = "═";
+            let vbar = "║";
+    
+    
+            var outputPane = "";
+            for (let roomKey in Game.rooms) {
+                let room = Game.rooms[roomKey];
+                let isMyRoom = (room.controller ? room.controller.my : 0);
+                if (isMyRoom) {
+                    let outputMap = "";
+                    outputMap = outputMap + leftTopCorner + hBar.repeat(50) + rightTopCorner + "\n"
+                    for (var y = 0, leny = 50; y < leny; y++) {
+                        outputMap = outputMap + vbar; // Adds the first vbar to the left of this row
+                        for (var x = 0, lenx = 50; x < lenx; x++) {
+                            let coords = new RoomPosition(x, y, room.name);
+                    
+                            // Terrain check
+                            let terrain = Game.map.getTerrainAt(coords);
+                            /* //Not needed atm
+                             switch(terrain){
+                             case 'wall':
+                             break;
+                             case 'swamp':
+                             break;
+                             case 'plain':
+                             break;
+                             default:
+                             //Was a new terrain added?!
+                             break;
+                             }
+                             */
+                            // Creep check
+                            var iscreep = false;
+                            let creepAtPos = coords.lookFor(LOOK_CREEPS);
+                            if (creepAtPos && creepAtPos.my) {
+                                iscreep = true
+                            }// Todo: add check for enemy creeps
+                    
+                            //Check for Structures
+                            let structureAtPos = coords.lookFor(LOOK_STRUCTURES);
+                            if (structureAtPos) {
+                                if (structureAtPos.length > 1) {
+                                    if (structureAtPos[0] = STRUCTURE_ROAD) {
+                                        structureAtPos = structureAtPos[1];
+                                    } else {
+                                        structureAtPos = structureAtPos[0];
+                                    }
+                                } else {
+                                    // Nothing to do here
+                                }
+                            }
+                    
+                            // Figure out what to display for this position
+                            let buildPos = "";
+                            if (terrain) {
+                                switch (terrain) {
+                                    case 'wall':
+                                        buildPos = walls;
+                                        break;
+                                    case 'swamp':
+                                        buildPos = swamp;
+                                        break;
+                                    case 'plain':
+                                        if (x == 0) {
+                                            buildPos = exitEast;
+                                        } else if (x == 50) {
+                                            buildPos = exitWest;
+                                        } else if (y == 0) {
+                                            buildPos = exitNorth;
+                                        } else if (y == 50) {
+                                            buildPos = exitSouth;
+                                        } else {
+                                            buildPos = plain;
+                                        }
+                                        break;
+                                    default:
+                                        //Was a new terrain added?!
+                                        break;
+                                }
+                            }
+                            if (structureAtPos) {
+                                switch (structureAtPos) {
+                                    case STRUCTURE_CONTAINER:
+                                        buildPos = container;
+                                        break;
+                                    case STRUCTURE_CONTROLLER:
+                                        buildPos = controller;
+                                        break;
+                                    case STRUCTURE_SPAWN:
+                                        buildPos = spawn;
+                                        break;
+                                    case STRUCTURE_EXTENSION:
+                                        buildPos = extension;
+                                        break;
+                                    case STRUCTURE_ROAD:
+                                        buildPos = road;
+                                        break;
+                                    case STRUCTURE_WALL:
+                                        buildPos = constructedWalls;
+                                        break;
+                                    case STRUCTURE_RAMPART:
+                                        buildPos = rampart;
+                                        break;
+                                    case STRUCTURE_KEEPER_LAIR:
+                                        break;
+                                    case STRUCTURE_PORTAL:
+                                        break;
+                                    case STRUCTURE_LINK:
+                                        buildPos = link;
+                                        break;
+                                    case STRUCTURE_STORAGE:
+                                        buildPos = storage;
+                                        break;
+                                    case STRUCTURE_TOWER:
+                                        buildPos = tower;
+                                        break;
+                                    case STRUCTURE_OBSERVER:
+                                        buildPos = observer;
+                                        break;
+                                    case STRUCTURE_POWER_BANK:
+                                        break;
+                                    case STRUCTURE_POWER_SPAWN:
+                                        buildPos = powerspawn;
+                                        break;
+                                    case STRUCTURE_EXTRACTOR:
+                                        buildPos = extractor;
+                                        break;
+                                    case STRUCTURE_LAB:
+                                        break;
+                                    case STRUCTURE_TERMINAL:
+                                        break;
+                                    case STRUCTURE_NUKER:
+                                        buildPos = nuker;
+                                        break;
+                                    default:
+                            
+                                }
+                            }
+                            if (iscreep) {
+                                buildPos = creep;
+                            }
+                            outputMap = outputMap + buildPos;
+                        }
+                        outputMap = outputMap + vbar + "\n"; //Adds the end vbar to the right of this row
+                
+                    }
+                    outputMap = outputMap + leftBottomCorner + hBar.repeat(50) + rightBottomCorner + "\n";
+                    console.log("<font size='8'" + outputMap + "</font>");
+                    outputPane = outputPane + ";" + outputMap;
+                }
+            }
+            //for (let i in outputPane.split(";")) {
+            //console.log(outputPane[i]);
+            /*            let outputCpu = cpuStats.split("\n");
+             let outputStats = Stats.split("\n");
+             let output = "";
+     
+             if (outputCpu.length == outputStats.length) {
+             for (let i = 0; i < outputCpu.length && i < outputStats.length; i++) {
+             output = output + outputCpu[i] + " " + outputStats[i] + "\n";
+             }
+             }*/
+            //}
+        }
     }
 };
 
