@@ -207,7 +207,11 @@
                 }
             }
         }
-        
+        let style = {
+            lineHeight: '1'
+        };
+        let styleStr = _.reduce(style, (l, v, k) => `${l}${_.kebabCase(k)}: ${v};`, '');
+        output = `<span style="${styleStr}">${output}</span>`;
         return output;
     },
     geohash: function () { // Get creep location and save as geohash
@@ -252,7 +256,7 @@
     },
     displayLogs: function () {
         // Settings for Logs Display
-        let totalWidth = 150;
+        let totalWidth = 100;
         let boxHeight = Memory.stats.logs.length - 1;
         let boxWidth = totalWidth - 3; // Inside of the box
         let borderWidth = 5;
@@ -359,8 +363,13 @@
         }
         let tick = hBar + " Tick: " + Game.time + " ";
         outputLog = outputLog + leftBottomCorner + tick + hBar.repeat(boxWidth - tick.length) + rightBottomCorner + "\n";
-        return outputLog; 
-    }
+        let style = {
+            lineHeight: '1'
+        };
+        let styleStr = _.reduce(style, (l, v, k) => `${l}${_.kebabCase(k)}: ${v};`, '');
+        outputLog = `<span style="${styleStr}">${outputLog}</span>`;
+        return outputLog;
+    },
 };
 
 module.exports = statsConsole;
