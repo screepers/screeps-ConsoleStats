@@ -1,83 +1,136 @@
 ﻿var statsConsole = {
     
-    run: function () {
+    /**
+     * Return ascii chart of `data` formatted ["Name", number].
+     *
+     * @param {Array} data - Your cpu stats of what you wish to display, example: [["Creep Manager", Memory.profilingData["CreepManager"]],["Towers", Memory.profilingData["Towers"]]]
+     * @param {boolean} logCpu - Do record keeping for you?
+     * @param {Object} opts
+     * @param {Object} opts.max - max CPU data to keep
+     * @param {Object} opts.display - max CPU data to keep
+     * @return {boolean}
+     * @api public
+     */
+    run: function (data, logCpu = true, opts = {}) {
+
+        if (Memory.stats == undefined){
+            Memory.stats = {};
+        }
+        Memory.stats.cpu = data;
         
+        /*
+		// sample data format ["Name for Stat", variableForStat]
+		let myStats = [
+			["Creep Managers", CreepManagersCPUUsage],
+			["Towers", towersCPUUsage],
+			["Links", linksCPUUsage],
+			["Setup Roles", SetupRolesCPUUsage],
+			["Creeps", CreepsCPUUsage],
+			["Init", initCPUUsage],
+			["Stats", statsCPUUsage],
+			["Total", totalCPUUsage]
+		];
+         */
+        let max = opts.max || 100;
+        let display = opts.display || 10;
         Memory.stats["gcl.progress"] = Game.gcl.progress;                           // Your progress to the next GCL
         Memory.stats["gcl.progressTotal"] = Game.gcl.progressTotal;                 // Your total needed to the next GCL
         Memory.stats["gcl.level"] = Game.gcl.level;                                 // Your GCL level
-        Memory.stats["cpu.CreepManagers"] = Memory.profilingData["bCreepManagers"]; // The creep manager
-        Memory.stats["cpu.Towers"] = Memory.profilingData["cTowers"];               // The towers
-        Memory.stats["cpu.Links"] = Memory.profilingData["dLinks"];                 // The links
-        Memory.stats["cpu.SetupRoles"] = Memory.profilingData["eSetupRoles"];       // The setup of your creep roles
-        Memory.stats["cpu.Creeps"] = Memory.profilingData["fCreeps"];               // The creep functions
-        Memory.stats["cpu.SumProfiling"] = Memory.profilingData["gSumProfiling"];   // The sum of your profiling
-        Memory.stats["cpu.Start"] = Memory.profilingData["aStart"];                 // The start of your stats
         Memory.stats["cpu.bucket"] = Game.cpu.bucket;                               // That big CPU bucket in the sky
         Memory.stats["cpu.limit"] = Game.cpu.limit;                                 // Duh! Your current CPU limit
-        Memory.stats["cpu.stats"] = Memory.profilingData["stats"];                  // Your stats that is gathered out side Screeps
-        Memory.stats["cpu.getUsed"] = Memory.profilingData["total"];                // Total for external stats
         Memory.stats["cpu.current"] = Game.cpu.getUsed();                           // What we currently used
-        Memory.stats["__cpu"].unshift(Game.cpu.getUsed());
-        
-        if (!Memory.stats.__cpu && Memory.stats.__cpu == undefined) {
-            Memory.stats["__cpu"] = new Array([0, 0]);
-        }
-        if (Memory.stats["__cpu"].length > 100 - 6) {
-            Memory.stats["__cpu"].pop();
-        }
-        
-        if (Memory.stats.logs == undefined) {
-            Memory.stats.logs[0] = ["Logging Initialized!", 3];
-        }
-        
-        if (Memory.stats.logs && Memory.stats.logs.length >= 11) {
-            for (let i = 0; i <= (Memory.stats.logs.length - 11); i++) {
-                Memory.stats.logs.shift(); // remove the first thing on the list as it is the oldest
+    
+        if (logCpu) {
+            
+    
+            if (!Memory.stats.__cpu && Memory.stats.__cpu == undefined) {
+                Memory.stats["__cpu"] = new Array(0);
+            }
+            Memory.stats.__cpu.unshift(Game.cpu.getUsed());
+            if (Memory.stats["__cpu"].length > max - 6) {
+                Memory.stats["__cpu"].pop();
+            }
+    
+            if (Memory.stats.logs == undefined) {
+                Memory.stats.logs = [["Logging Initialized!", 3]];
+            }
+    
+            if (Memory.stats.logs && Memory.stats.logs.length >= display) {
+                for (let i = 0; i <= (Memory.stats.logs.length - display); i++) {
+                    Memory.stats.logs.shift(); // remove the first thing on the list as it is the oldest
+                }
             }
         }
-        
+        return true;
     },
-    
+    //TODO: allow passing data to it.
     displayHistogram: function () {
         var asciiChart = require("ascii-chart");
-        return asciiChart.chart(Memory.stats.__cpu.slice(0, 50).reverse(), {width: 100, height: 20});
+        let output = asciiChart.chart(Memory.stats.__cpu.slice(0, 50).reverse(), {width: 100, height: 20})
+        let style = {
+            lineHeight: '1'
+        };
+        let styleStr = _.reduce(style, (l, v, k) => `${l}${_.kebabCase(k)}: ${v};`, '');
+        output = `<span style="${styleStr}">${output}</span>`;
+        return output;
     },
-    displayStats: function () {
+    /**
+     * Return ascii tables of cpu and room stats.
+     *
+     * @param {Object} opts - object that contains the following settings example: {totalWidth: 100,useProgressBar: true,cpuTitle: "CPU"}
+     * @param {number} opts.totalWidth - total chart width [100]
+     * @param {number} opts.cpuHistory - how far back we will use to average [10]
+     * @param {number} opts.cpuTitle - title of CPU chart ["CPU"]
+     * @param {number} opts.statsTitle - title of CPU chart ["CPU"]
+     * @param {number} opts.leftTopCorner - title of CPU chart ["╔"]
+     * @param {number} opts.rightTopCorner - title of CPU chart ["╗"]
+     * @param {number} opts.leftBottomCorner - title of CPU chart ["╚"]
+     * @param {number} opts.rightBottomCorner - title of CPU chart ["╝"]
+     * @param {number} opts.useProgressBar - [true]
+     * @param {number} opts.progrssBar - ["#"]
+     * @param {number} opts.spacing - [" "]
+     * @param {number} opts.vBar - ["║"]
+     * @param {number} opts.hBar - ["═"]
+     * @param {number} opts.percent - ["%"]
+     *
+     * @return {String}
+     * @api public
+     */
+    displayStats: function (opts = {}) {
+        /*
+         // Example of option that can be passed
+         
+         */
         
-        // Settings for Stats
-        let totalWidth = 100;
+        // Options
+        let totalWidth = opts.totalWidth || 100;
+        let cpuAvgCount = opts.cpuHistory || 10;
+        let title = opts.cpuTitle || "CPU";
+        let statsTitle = opts.statsTitle || "Stats";
+        let leftTopCorner = opts.leftTopCorner || "╔";
+        let rightTopCorner = opts.rightTopCorner || "╗";
+        let leftBottomCorner = opts.leftBottomCorner || "╚";
+        let rightBottomCorner = opts.rightBottomCorner || "╝";
+        let hBar = opts.hBar || "═";
+        let vbar = opts.vBar || "║";
+        let percent = opts.percent || "%";
+        let useProgressBar = opts.useProgressBar || true;
+        let progrssBar = opts.progrssBar || "#";
+        let spacing = opts.spacing || " ";
         
-        let cpuAvgCount = 10;
-        let cpuAverage = 0;
-        let title = "CPU";
-        let leftTopCorner = "╔";
-        let rightTopCorner = "╗";
-        let leftBottomCorner = "╚";
-        let rightBottomCorner = "╝";
-        let hBar = "═";
-        let vbar = "║";
-        let percent = "%";
-        let useProgressBar = true;
-        let progrssBar = "#";
-        let spacing = " ";
         
-        let boxWidth = totalWidth - 8;
+        let boxWidth = totalWidth - hBar.length * 4 - vbar.length * 4; // Width of the inside of the box
         let rooms = Game.rooms;
-        let spawns = Game.spawns;
         let cpuLimit = Game.cpu.limit;
         let cpuBucket = Game.cpu.bucket;
-        let cpuCreepManager = Memory.stats["cpu.CreepManagers"];
-        let cpuSetupRoles = Memory.stats["cpu.SetupRoles"];
-        let cpuCreepActions = Memory.stats["cpu.Creeps"];
-        let cpuInit = Memory.stats["cpu.Start"];
-        let cpuLinks = Memory.stats["cpu.Links"];
-        let cpuTowers = Memory.stats["cpu.Towers"];
         let cpuTotal = Game.cpu.getUsed();
         
         let addSpace = 0;
         if (!(boxWidth % 2 === 0)) {
             addSpace = 1;
         }
+        
+        let cpuAverage = 0;
         for (let i = cpuAvgCount; i > 0; i--) {
             cpuAverage = cpuAverage + Memory.stats.__cpu[i];
         }
@@ -88,31 +141,23 @@
         let lineName = [
             "Usage",
             "Usage Avg",
-            "Bucket",
-            "Init",
-            "Setup Roles",
-            "Creep Manager",
-            "Creep Actions",
-            "Links",
-            "Towers"
+            "Bucket"
         ];
         let lineStat = [
             (((cpuTotal / cpuLimit) * 100).toFixed(2) + percent),
             (((cpuAverage / cpuLimit) * 100).toFixed(2) + percent),
-            (cpuBucket).toFixed(0).toString(),
-            (cpuInit).toFixed(0).toString(),
-            (cpuSetupRoles).toFixed(0).toString(),
-            (cpuCreepManager).toFixed(0).toString(),
-            (cpuCreepActions).toFixed(0).toString(),
-            (cpuLinks).toFixed(0).toString(),
-            (cpuTowers).toFixed(0).toString()
+            (cpuBucket).toFixed(0).toString()
         ];
-        // End of settings
-        
+    
+        for (let i = 0; i < Memory.stats.cpu.length; i++) {
+            let name = [Memory.stats.cpu[i][0]];
+            let stat = [Memory.stats.cpu[i][1].toFixed(0)];
+            lineName.push(name);
+            lineStat.push(stat);
+        }
         
         let cpuStats = leftTopCorner + _.repeat(hBar, (((boxWidth / 4) - ((spacing.length + title.length + spacing.length) / 2)))) + spacing + title + spacing + _.repeat(hBar, (((boxWidth / 4) - ((spacing.length + title.length + spacing.length) / 2)))) + rightTopCorner + "\n";
         for (let i = 0; i < lineName.length && i < lineStat.length; i++) {
-            //cpuStats = cpuStats + leftTopCorner +                _.repeat(hBar, (((boxWidth / 4) - ((spacing.length + title.length + spacing.length) / 2)))) + spacing + title + spacing + _.repeat(hBar, (((boxWidth / 4) - ((spacing.length + title.length + spacing.length) / 2)))) + rightTopCorner + "\n";
             cpuStats = cpuStats + vbar + spacing + lineName[i] + _.repeat(spacing, (((boxWidth) / 4) - ((spacing + spacing + lineName[i]).length))) + spacing + ":" + spacing + lineStat[i] + _.repeat(spacing, (((boxWidth) / 4) - ((spacing + spacing + lineStat[i]).length))) + spacing + vbar + "\n";
         }
         cpuStats = cpuStats + leftBottomCorner + _.repeat(hBar, (boxWidth / 2) + 1 + addSpace) + rightBottomCorner;
@@ -120,7 +165,7 @@
         
         // ================== Build up Room stats ===============================
         
-        title = "Stats";            // Name of Stats block
+        title = statsTitle;            // Name of Stats block
         let gclProgress = Game.gcl.progress;
         if (gclProgress < 10) {
             gclProgress = 2
@@ -131,13 +176,7 @@
             secondLineStat = [_.repeat(progrssBar, ((gclProgress / Game.gcl.progressTotal) * (boxWidth / 4 - 2)))];
         }
         
-        let dIndex = 0;
-        for (let spawnKey in spawns) {
-            let spawn = Game.spawns[spawnKey];
-            dIndex = dIndex + spawn.memory["defenderIndex"];
-        }
-        secondLineName = secondLineName.concat(["Defender Index"]);
-        secondLineStat = secondLineStat.concat([dIndex]);
+        
         for (let roomKey in rooms) {
             let room = Game.rooms[roomKey];
             let isMyRoom = (room.controller ? room.controller.my : 0);
@@ -161,7 +200,6 @@
                 
                 if (room.storage) {
                     secondLineName = secondLineName.concat(["Stored Energy"]);
-                    //secondLineStat = secondLineStat.concat([room.storage.store[RESOURCE_ENERGY]]);
                     secondLineStat = secondLineStat.concat([room.storage.store[RESOURCE_ENERGY]].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","));
                 } else {
                     secondLineName = secondLineName.concat(["Stored Energy"]);
@@ -193,7 +231,7 @@
         } else if (outputCpu.length > outputStats.length) {
             for (let i = 0; i < outputCpu.length; i++) {
                 if (outputStats.length == i) {
-                    output = output + outputCpu[i] + " " + _.repeat(" ", (boxWidth / 2) + 3+ addSpace) + "\n";
+                    output = output + outputCpu[i] + " " + _.repeat(" ", (boxWidth / 2) + 3 + addSpace) + "\n";
                 } else {
                     output = output + outputCpu[i] + " " + outputStats[i] + "\n";
                 }
@@ -254,28 +292,44 @@
     log: function (message, severity = 3) {
         Memory.stats.logs.push([message, severity]);
     },
-    displayLogs: function () {
-        // Settings for Logs Display
-        let totalWidth = 100;
-        let boxHeight = Memory.stats.logs.length - 1;
+    /**
+     * Return string with a bounding box around the array with severity info.
+     *
+     * @param {Object} logs.[][] - Optional log input from your own array, example: logs.push(["Creep Done!",3]);
+     * @param {Object} opts - object that contains the following settings example: {totalWidth: 100,useProgressBar: true,cpuTitle: "CPU"}
+     * @param {number} opts.width - total chart width [100]
+     * @param {number} opts.title - []
+     * @param {number} opts.leftTopCorner - []
+     * @param {number} opts.rightTopCorner - []
+     * @param {number} opts.leftBottomCorner - []
+     * @param {number} opts.rightBottomCorner - []
+     * @param {number} opts.hBar - []
+     * @param {number} opts.vBar - []
+     * @param {number} opts.spacing - []
+     *
+     * @return {String}
+     * @api public
+     */
+    displayLogs: function (logs = Memory.stats.logs, opts = {}) {
+        
+        let totalWidth = opts.width || 100;
+        let title = opts.title || " Logs ";
+        let leftTopCorner = opts.leftTopCorner || "╔";
+        let rightTopCorner = opts.rightTopCorner || "╗";
+        let leftBottomCorner = opts.leftBottomCorner || "╚";
+        let rightBottomCorner = opts.rightBottomCorner || "╝";
+        let hBar = opts.hBar || "═";
+        let vbar = opts.vBar || "║";
+        let spacing = opts.spacing || " ";
+        
+        let boxHeight = logs.length - 1;
         let boxWidth = totalWidth - 3; // Inside of the box
         let borderWidth = 5;
-        //boxWidth = boxWidth + borderWidth;
+        
         let addSpace = 0;
         if (!(boxWidth % 2 === 0)) {
             addSpace = 1;
         }
-        
-        let title = " Logs ";
-        let leftTopCorner = "╔";
-        let rightTopCorner = "╗";
-        let leftBottomCorner = "╚";
-        let rightBottomCorner = "╝";
-        let hBar = "═";
-        let vbar = "║";
-        let spacing = " ";
-        // End of Settings
-        
         var colors = {
             '5': '#ff0066',
             '4': '#e65c00',
@@ -369,7 +423,7 @@
         let styleStr = _.reduce(style, (l, v, k) => `${l}${_.kebabCase(k)}: ${v};`, '');
         outputLog = `<span style="${styleStr}">${outputLog}</span>`;
         return outputLog;
-    },
+    }
 };
 
 module.exports = statsConsole;
