@@ -1,4 +1,4 @@
-
+var statsConsole = require("statsConsole");
 // sample data format ["Name for Stat", variableForStat]
 let myStats = [
 	["Creep Managers", CreepManagersCPUUsage],
