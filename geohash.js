@@ -30,7 +30,7 @@ BORDERS.left.odd = BORDERS.bottom.even;
 BORDERS.right.odd = BORDERS.top.even;
 
 function refine_interval(interval, cd, mask) {
-    if (cd & mask)
+    if (cd && mask)
         interval[0] = (interval[0] + interval[1]) / 2;
     else
         interval[1] = (interval[0] + interval[1]) / 2;
@@ -38,30 +38,30 @@ function refine_interval(interval, cd, mask) {
 
 function calculateAdjacent(srcHash, dir) {
     srcHash = srcHash.toLowerCase();
-    var lastChr = srcHash.charAt(srcHash.length - 1);
-    var type = (srcHash.length % 2) ? 'odd' : 'even';
-    var base = srcHash.substring(0, srcHash.length - 1);
+    let lastChr = srcHash.charAt(srcHash.length - 1);
+    let type = (srcHash.length % 2) ? 'odd' : 'even';
+    let base = srcHash.substring(0, srcHash.length - 1);
     if (BORDERS[dir][type].indexOf(lastChr) != -1)
         base = calculateAdjacent(base, dir);
     return base + BASE32[NEIGHBORS[dir][type].indexOf(lastChr)];
 }
 
 function decodeGeoHash(geohash) {
-    var is_even = 1;
-    var lat = [];
-    var lon = [];
+    let is_even = 1;
+    let lat = [];
+    let lon = [];
     lat[0] = -90.0;
     lat[1] = 90.0;
     lon[0] = -180.0;
     lon[1] = 180.0;
-    lat_err = 90.0;
-    lon_err = 180.0;
+    let lat_err = 90.0;
+    let lon_err = 180.0;
     
-    for (i = 0; i < geohash.length; i++) {
-        c = geohash[i];
-        cd = BASE32.indexOf(c);
-        for (j = 0; j < 5; j++) {
-            mask = BITS[j];
+    for (let i = 0; i < geohash.length; i++) {
+        let c = geohash[i];
+        let cd = BASE32.indexOf(c);
+        for (let j = 0; j < 5; j++) {
+            let mask = BITS[j];
             if (is_even) {
                 lon_err /= 2;
                 refine_interval(lon, cd, mask);
@@ -79,14 +79,13 @@ function decodeGeoHash(geohash) {
 }
 
 function encodeGeoHash(latitude, longitude) {
-    var is_even = 1;
-    var i = 0;
-    var lat = [];
-    var lon = [];
-    var bit = 0;
-    var ch = 0;
-    var precision = 12;
-    geohash = "";
+    let is_even = 1;
+    let lat = [];
+    let lon = [];
+    let bit = 0;
+    let ch = 0;
+    let precision = 12;
+    let geohash = "";
     
     lat[0] = -90.0;
     lat[1] = 90.0;
@@ -95,14 +94,14 @@ function encodeGeoHash(latitude, longitude) {
     
     while (geohash.length < precision) {
         if (is_even) {
-            mid = (lon[0] + lon[1]) / 2;
+            let mid = (lon[0] + lon[1]) / 2;
             if (longitude > mid) {
                 ch |= BITS[bit];
                 lon[0] = mid;
             } else
                 lon[1] = mid;
         } else {
-            mid = (lat[0] + lat[1]) / 2;
+            let mid = (lat[0] + lat[1]) / 2;
             if (latitude > mid) {
                 ch |= BITS[bit];
                 lat[0] = mid;
