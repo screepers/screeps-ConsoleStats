@@ -109,6 +109,7 @@ var statsConsole = {
      * @param {number} opts.vBar - ["|"]
      * @param {number} opts.hBar - ["-"]
      * @param {number} opts.percent - ["%"]
+     * @param {number} opts.links - [true] - Add link to rooms, default is true
      *
      * @return {String}
      * @api public
@@ -116,9 +117,9 @@ var statsConsole = {
     displayStats: function (opts = {}) {
         /*
          // Example of option that can be passed
-
+         
          */
-
+        
         // Options
         let totalWidth = opts.totalWidth || 100;
         let cpuAvgCount = opts.cpuHistory || 10;
@@ -134,19 +135,20 @@ var statsConsole = {
         let useProgressBar = opts.useProgressBar || true;
         let progressBar = opts.progressBar || "#";
         let spacing = opts.spacing || " ";
-
-
+        let addLinks = opts.links || true;
+        
+        
         let boxWidth = totalWidth - hBar.length * 4 - vbar.length * 4; // Width of the inside of the box
         let rooms = Game.rooms;
         let cpuLimit = Game.cpu.limit;
         let cpuBucket = Game.cpu.bucket;
         let cpuTotal = Game.cpu.getUsed();
-
+        
         let addSpace = 0;
         if (!(boxWidth % 2 === 0)) {
             addSpace = 1;
         }
-
+        
         let cpuAverage = 0;
         for (let i = cpuAvgCount; i > 0; i--) {
             cpuAverage = cpuAverage + Memory.stats.__cpu[i];
@@ -165,23 +167,23 @@ var statsConsole = {
             (((cpuAverage / cpuLimit) * 100).toFixed(2) + percent),
             (cpuBucket).toFixed(0).toString()
         ];
-
+        
         for (let i = 0; i < Memory.stats.cpu.length; i++) {
             let name = [Memory.stats.cpu[i][0]];
             let stat = [Memory.stats.cpu[i][1].toFixed(0)];
             lineName.push(name);
             lineStat.push(stat);
         }
-
+        
         let cpuStats = leftTopCorner + _.repeat(hBar, (((boxWidth / 4) - ((spacing.length + title.length + spacing.length) / 2)))) + spacing + title + spacing + _.repeat(hBar, (((boxWidth / 4) - ((spacing.length + title.length + spacing.length) / 2)))) + rightTopCorner + "\n";
         for (let i = 0; i < lineName.length && i < lineStat.length; i++) {
             cpuStats = cpuStats + vbar + spacing + lineName[i] + _.repeat(spacing, (((boxWidth) / 4) - ((spacing + spacing + lineName[i]).length))) + spacing + ":" + spacing + lineStat[i] + _.repeat(spacing, (((boxWidth) / 4) - ((spacing + spacing + lineStat[i]).length))) + spacing + vbar + "\n";
         }
         cpuStats = cpuStats + leftBottomCorner + _.repeat(hBar, (boxWidth / 2) + 1 + addSpace) + rightBottomCorner;
-
-
+        
+        
         // ================== Build up Room stats ===============================
-
+        
         title = statsTitle;            // Name of Stats block
         let gclProgress = Game.gcl.progress;
         if (gclProgress < 10) {
@@ -192,8 +194,8 @@ var statsConsole = {
         if (useProgressBar) {
             secondLineStat = [_.repeat(progressBar, ((gclProgress / Game.gcl.progressTotal) * (boxWidth / 4 - 2)))];
         }
-
-
+        
+        
         for (let roomKey in rooms) {
             if (!rooms.hasOwnProperty(roomKey)) {
                 continue;
@@ -204,7 +206,7 @@ var statsConsole = {
                 secondLineName = secondLineName.concat(["Room"]);
                 secondLineName = secondLineName.concat(["Energy Capacity"]);
                 secondLineName = secondLineName.concat(["Controller Progress"]);
-
+                
                 secondLineStat = secondLineStat.concat([room.name]);
                 if (useProgressBar) {
                     secondLineStat = secondLineStat.concat([_.repeat(progressBar, ((room.energyAvailable / room.energyCapacityAvailable) * (boxWidth / 4 - 2)))]);
@@ -216,8 +218,8 @@ var statsConsole = {
                 } else {
                     secondLineStat = secondLineStat.concat([((room.controller.progress / room.controller.progressTotal) * 100).toFixed(2) + percent]);
                 }
-
-
+                
+                
                 if (room.storage) {
                     secondLineName = secondLineName.concat(["Stored Energy"]);
                     secondLineStat = secondLineStat.concat([room.storage.store[RESOURCE_ENERGY]].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","));
@@ -229,21 +231,25 @@ var statsConsole = {
                 // not my room
             }
         }
-
+        
         let Stats = leftTopCorner + _.repeat(hBar, (((boxWidth / 4) + 3 - (spacing + title + spacing).length))) + spacing + title + spacing + _.repeat(hBar, ((boxWidth / 4) + 3 - (title).length) + addSpace) + rightTopCorner + "\n";
         for (let i = 0; i < secondLineName.length && i < secondLineStat.length; i++) {
-            Stats = Stats + vbar + spacing + secondLineName[i] + spacesToEnd((spacing + addSpace + secondLineName[i]).toString(), (boxWidth / 4)) + ":" + spacing + secondLineStat[i] + spacesToEnd((spacing + secondLineStat[i]).toString(), (boxWidth / 4)) + spacing + vbar + "\n";
+            if(addLinks == true && secondLineName[i] == "Room"){
+                Stats = Stats + vbar + spacing + secondLineName[i] + spacesToEnd((spacing + addSpace + secondLineName[i]).toString(), (boxWidth / 4)) + ":" + spacing + `<a href="#!/room/${ secondLineStat[i] }">${ secondLineStat[i] }</a>` + spacesToEnd((spacing + secondLineStat[i]).toString(), (boxWidth / 4)) + spacing + vbar + "\n";
+            }else{
+                Stats = Stats + vbar + spacing + secondLineName[i] + spacesToEnd((spacing + addSpace + secondLineName[i]).toString(), (boxWidth / 4)) + ":" + spacing + secondLineStat[i] + spacesToEnd((spacing + secondLineStat[i]).toString(), (boxWidth / 4)) + spacing + vbar + "\n";
+            }
         }
         Stats = Stats + leftBottomCorner + _.repeat(hBar, (boxWidth / 2) + 1 + addSpace) + rightBottomCorner;
-
-
+        
+        
         // ============= Now we combine both ==============
-
+        
         // Trying to make the tables appear on the same row?
         let outputCpu = cpuStats.split("\n");
         let outputStats = Stats.split("\n");
         let output = "";
-
+        
         if (outputCpu.length == outputStats.length) {
             for (let i = 0; i < outputCpu.length && i < outputStats.length; i++) {
                 output = output + outputCpu[i] + " " + outputStats[i] + "\n";
