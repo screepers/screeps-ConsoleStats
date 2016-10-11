@@ -103,13 +103,13 @@ var statsConsole = {
      * @param {number} opts.rightTopCorner - title of CPU chart ["+"]
      * @param {number} opts.leftBottomCorner - title of CPU chart ["+"]
      * @param {number} opts.rightBottomCorner - title of CPU chart ["+"]
-     * @param {number} opts.useProgressBar - [true]
+     * @param {number} opts.useProgressBar - ["yes"]
      * @param {number} opts.progressBar - ["#"]
      * @param {number} opts.spacing - [" "]
      * @param {number} opts.vBar - ["|"]
      * @param {number} opts.hBar - ["-"]
      * @param {number} opts.percent - ["%"]
-     * @param {number} opts.links - [true] - Add link to rooms, default is true
+     * @param {number} opts.links - ["yes"] - Add link to rooms, default is true
      *
      * @return {String}
      * @api public
@@ -132,10 +132,10 @@ var statsConsole = {
         let hBar = opts.hBar || "-";
         let vbar = opts.vBar || "|";
         let percent = opts.percent || "%";
-        let useProgressBar = opts.useProgressBar || true;
+        let useProgressBar = opts.useProgressBar || "yes";
         let progressBar = opts.progressBar || "#";
         let spacing = opts.spacing || " ";
-        let addLinks = opts.links || true;
+        let addLinks = opts.links || "yes";
         
         
         let boxWidth = totalWidth - hBar.length * 4 - vbar.length * 4; // Width of the inside of the box
@@ -191,7 +191,7 @@ var statsConsole = {
         }
         let secondLineName = ["GCL" + (Game.gcl.level + 1) + " - " + ((gclProgress / Game.gcl.progressTotal) * 100).toFixed(0) + "%"];
         let secondLineStat = [((gclProgress / Game.gcl.progressTotal) * 100).toFixed(2) + percent];
-        if (useProgressBar) {
+        if (useProgressBar === "yes") {
             secondLineStat = [_.repeat(progressBar, ((gclProgress / Game.gcl.progressTotal) * (boxWidth / 4 - 2)))];
         }
         
@@ -208,12 +208,12 @@ var statsConsole = {
                 secondLineName = secondLineName.concat(["Controller Progress"]);
                 
                 secondLineStat = secondLineStat.concat([room.name]);
-                if (useProgressBar) {
+                if (useProgressBar === "yes") {
                     secondLineStat = secondLineStat.concat([_.repeat(progressBar, ((room.energyAvailable / room.energyCapacityAvailable) * (boxWidth / 4 - 2)))]);
                 } else {
                     secondLineStat = secondLineStat.concat([((room.energyAvailable / room.energyCapacityAvailable) * 100).toFixed(2) + percent]);
                 }
-                if (useProgressBar) {
+                if (useProgressBar === "yes") {
                     secondLineStat = secondLineStat.concat([_.repeat(progressBar, ((room.controller.progress / room.controller.progressTotal) * (boxWidth / 4 - 2)))]);
                 } else {
                     secondLineStat = secondLineStat.concat([((room.controller.progress / room.controller.progressTotal) * 100).toFixed(2) + percent]);
@@ -234,7 +234,7 @@ var statsConsole = {
         
         let Stats = leftTopCorner + _.repeat(hBar, (((boxWidth / 4) + 3 - (spacing + title + spacing).length))) + spacing + title + spacing + _.repeat(hBar, ((boxWidth / 4) + 3 - (title).length) + addSpace) + rightTopCorner + "\n";
         for (let i = 0; i < secondLineName.length && i < secondLineStat.length; i++) {
-            if(addLinks == true && secondLineName[i] == "Room"){
+            if(addLinks == "yes" && secondLineName[i] == "Room"){
                 Stats = Stats + vbar + spacing + secondLineName[i] + spacesToEnd((spacing + addSpace + secondLineName[i]).toString(), (boxWidth / 4)) + ":" + spacing + `<a href="#!/room/${ secondLineStat[i] }">${ secondLineStat[i] }</a>` + spacesToEnd((spacing + secondLineStat[i]).toString(), (boxWidth / 4)) + spacing + vbar + "\n";
             }else{
                 Stats = Stats + vbar + spacing + secondLineName[i] + spacesToEnd((spacing + addSpace + secondLineName[i]).toString(), (boxWidth / 4)) + ":" + spacing + secondLineStat[i] + spacesToEnd((spacing + secondLineStat[i]).toString(), (boxWidth / 4)) + spacing + vbar + "\n";
