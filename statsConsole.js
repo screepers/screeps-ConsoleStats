@@ -256,7 +256,7 @@ var statsConsole = {
             }
         } else if (outputCpu.length > outputStats.length) {
             for (let i = 0; i < outputCpu.length; i++) {
-                if (outputStats.length == i) {
+                if (outputStats.length <= i) {
                     output = output + outputCpu[i] + " " + _.repeat(" ", (boxWidth / 2) + 3 + addSpace) + "\n";
                 } else {
                     output = output + outputCpu[i] + " " + outputStats[i] + "\n";
