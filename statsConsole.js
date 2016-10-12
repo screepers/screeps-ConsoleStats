@@ -1,4 +1,4 @@
-﻿//TODO some how I want this to work with https://github.com/Puciek/screeps-elk
+//TODO some how I want this to work with https://github.com/Puciek/screeps-elk
 var useUtilsLogger = false;
 try {
     require('utils.logger.js');
@@ -10,7 +10,7 @@ try {
 
 
 var statsConsole = {
-
+    
     /**
      * Return ascii chart of `data` formatted ["Name", number].
      *
@@ -23,7 +23,7 @@ var statsConsole = {
      * @api public
      */
     run: function (data, logCpu = true, opts = {}) {
-
+        
         if (Memory.stats === undefined) {
             Memory.stats = {};
         }
@@ -49,10 +49,10 @@ var statsConsole = {
         Memory.stats["cpu.bucket"] = Game.cpu.bucket;                               // That big CPU bucket in the sky
         Memory.stats["cpu.limit"] = Game.cpu.limit;                                 // Duh! Your current CPU limit
         Memory.stats["cpu.current"] = Game.cpu.getUsed();                           // What we currently used
-
+        
         if (logCpu) {
-
-
+            
+            
             if (!Memory.stats.__cpu && Memory.stats.__cpu === undefined) {
                 Memory.stats["__cpu"] = new Array(0);
             }
@@ -60,11 +60,11 @@ var statsConsole = {
             if (Memory.stats["__cpu"].length > max - 6) {
                 Memory.stats["__cpu"].pop();
             }
-
+            
             if (Memory.stats.logs === undefined) {
                 Memory.stats.logs = [["Logging Initialized!", 3]];
             }
-
+            
             if (Memory.stats.logs && Memory.stats.logs.length >= display) {
                 for (let i = 0; i <= (Memory.stats.logs.length - display); i++) {
                     Memory.stats.logs.shift(); // remove the first thing on the list as it is the oldest
@@ -97,19 +97,20 @@ var statsConsole = {
      * @param {Object} opts - object that contains the following settings example: {totalWidth: 100,useProgressBar: true,cpuTitle: "CPU"}
      * @param {number} opts.totalWidth - total chart width [100]
      * @param {number} opts.cpuHistory - how far back we will use to average [10]
-     * @param {number} opts.cpuTitle - title of CPU chart ["CPU"]
-     * @param {number} opts.statsTitle - title of CPU chart ["CPU"]
-     * @param {number} opts.leftTopCorner - title of CPU chart ["+"]
-     * @param {number} opts.rightTopCorner - title of CPU chart ["+"]
-     * @param {number} opts.leftBottomCorner - title of CPU chart ["+"]
-     * @param {number} opts.rightBottomCorner - title of CPU chart ["+"]
-     * @param {number} opts.useProgressBar - ["yes"]
-     * @param {number} opts.progressBar - ["#"]
-     * @param {number} opts.spacing - [" "]
-     * @param {number} opts.vBar - ["|"]
-     * @param {number} opts.hBar - ["-"]
-     * @param {number} opts.percent - ["%"]
-     * @param {number} opts.links - ["yes"] - Add link to rooms, default is true
+     * @param {string} opts.cpuTitle - title of CPU chart ["CPU"]
+     * @param {string} opts.statsTitle - title of CPU chart ["CPU"]
+     * @param {string} opts.leftTopCorner - title of CPU chart ["+"]
+     * @param {string} opts.rightTopCorner - title of CPU chart ["+"]
+     * @param {string} opts.leftBottomCorner - title of CPU chart ["+"]
+     * @param {string} opts.rightBottomCorner - title of CPU chart ["+"]
+     * @param {string} opts.useProgressBar - ["yes"]
+     * @param {string} opts.percentInProgressBar - ["yes"]
+     * @param {string} opts.progressBar - ["#"]
+     * @param {string} opts.spacing - [" "]
+     * @param {string} opts.vBar - ["|"]
+     * @param {string} opts.hBar - ["-"]
+     * @param {string} opts.percent - ["%"]
+     * @param {string} opts.links - ["yes"] - Add link to rooms, default is true
      *
      * @return {String}
      * @api public
@@ -133,6 +134,7 @@ var statsConsole = {
         let vbar = opts.vBar || "|";
         let percent = opts.percent || "%";
         let useProgressBar = opts.useProgressBar || "yes";
+        let percentInProgressBar = opts.percentInProgressBar || "yes";
         let progressBar = opts.progressBar || "#";
         let spacing = opts.spacing || " ";
         let addLinks = opts.links || "yes";
@@ -205,20 +207,44 @@ var statsConsole = {
             if (isMyRoom) {
                 secondLineName = secondLineName.concat(["Room"]);
                 secondLineName = secondLineName.concat(["Energy Capacity"]);
-                secondLineName = secondLineName.concat(["Controller Progress"]);
+                if (room.controller.level < 8) {
+                    secondLineName = secondLineName.concat(["Controller Progress"]);
+                }
+                
                 
                 secondLineStat = secondLineStat.concat([room.name]);
                 if (useProgressBar === "yes") {
-                    secondLineStat = secondLineStat.concat([_.repeat(progressBar, ((room.energyAvailable / room.energyCapacityAvailable) * (boxWidth / 4 - 2)))]);
+                    let progress = ((room.energyAvailable / room.energyCapacityAvailable) * 100).toFixed(0) + percent;
+                    if (percentInProgressBar === "yes"){
+                        let progressBarLength = (room.energyAvailable / room.energyCapacityAvailable) * (boxWidth / 4 - 2);
+                        if (progressBarLength + 2 > progress.length){
+                            secondLineStat = secondLineStat.concat([progressBar + spacing + progress + spacing + _.repeat(progressBar, progressBarLength - (progress.length + 3))]);
+                        }else{
+                            secondLineStat = secondLineStat.concat([_.repeat(progressBar, progressBarLength)]);
+                        }
+                    }else{
+                        secondLineStat = secondLineStat.concat([_.repeat(progressBar, ((room.energyAvailable / room.energyCapacityAvailable) * (boxWidth / 4 - 2)))]);
+                    }
                 } else {
                     secondLineStat = secondLineStat.concat([((room.energyAvailable / room.energyCapacityAvailable) * 100).toFixed(2) + percent]);
                 }
-                if (useProgressBar === "yes") {
-                    secondLineStat = secondLineStat.concat([_.repeat(progressBar, ((room.controller.progress / room.controller.progressTotal) * (boxWidth / 4 - 2)))]);
-                } else {
-                    secondLineStat = secondLineStat.concat([((room.controller.progress / room.controller.progressTotal) * 100).toFixed(2) + percent]);
+                if (room.controller.level < 8) {
+                    let progress = ((room.controller.progress / room.controller.progressTotal) * 100).toFixed(0) + percent;
+                    if (useProgressBar === "yes") {
+                        if (percentInProgressBar === "yes"){
+                            let progressBarLength = (room.controller.progress / room.controller.progressTotal) * (boxWidth / 4 - 2);
+                            if (progressBarLength + 2 > progress.length){
+                                secondLineStat = secondLineStat.concat([progressBar + spacing + progress + spacing + _.repeat(progressBar, progressBarLength - (progress.length + 3))]);
+                            }else{
+                                secondLineStat = secondLineStat.concat([_.repeat(progressBar, progressBarLength)]);
+                            }
+                        }else{
+                            secondLineStat = secondLineStat.concat([_.repeat(progressBar, ((room.controller.progress / room.controller.progressTotal) * (boxWidth / 4 - 2)))]);
+                        }
+                    } else {
+                        secondLineStat = secondLineStat.concat([progress]);
+                    }
                 }
-                
                 
                 if (room.storage) {
                     secondLineName = secondLineName.concat(["Stored Energy"]);
@@ -234,9 +260,9 @@ var statsConsole = {
         
         let Stats = leftTopCorner + _.repeat(hBar, (((boxWidth / 4) + 3 - (spacing + title + spacing).length))) + spacing + title + spacing + _.repeat(hBar, ((boxWidth / 4) + 3 - (title).length) + addSpace) + rightTopCorner + "\n";
         for (let i = 0; i < secondLineName.length && i < secondLineStat.length; i++) {
-            if(addLinks == "yes" && secondLineName[i] == "Room"){
+            if (addLinks == "yes" && secondLineName[i] == "Room") {
                 Stats = Stats + vbar + spacing + secondLineName[i] + spacesToEnd((spacing + addSpace + secondLineName[i]).toString(), (boxWidth / 4)) + ":" + spacing + `<a href="#!/room/${ secondLineStat[i] }">${ secondLineStat[i] }</a>` + spacesToEnd((spacing + secondLineStat[i]).toString(), (boxWidth / 4)) + spacing + vbar + "\n";
-            }else{
+            } else {
                 Stats = Stats + vbar + spacing + secondLineName[i] + spacesToEnd((spacing + addSpace + secondLineName[i]).toString(), (boxWidth / 4)) + ":" + spacing + secondLineStat[i] + spacesToEnd((spacing + secondLineStat[i]).toString(), (boxWidth / 4)) + spacing + vbar + "\n";
             }
         }
@@ -304,12 +330,12 @@ var statsConsole = {
                     strBuild = strBuild + j;
                 }
                 let y = "." + Game.creeps[creep].pos.y;
-
+                
                 strBuild = strBuild + y;
                 var geoHash = _.words(strBuild, /[^,]+/g);
                 var ghash = geohash(geoHash[0], geoHash[1]);
                 //console.log(strBuild); // shows +41.32,-6.7
-
+                
                 // You can use this bit if you want to output +41.32,-6.7 like coordinates
                 //lat = geoHash[0];
                 //lng = geoHash[1];
@@ -319,7 +345,7 @@ var statsConsole = {
         return geohashArray;
     },
     log: function (message, severity = 3) {
-
+        
         Memory.stats.logs.push([Game.time + ": " + message, severity]);
     },
     /**
@@ -341,7 +367,7 @@ var statsConsole = {
      * @api public
      */
     displayLogs: function (logs = Memory.stats.logs, opts = {}) {
-
+        
         let totalWidth = opts.width || 100;
         let title = opts.title || " Logs ";
         let leftTopCorner = opts.leftTopCorner || "+";
@@ -351,11 +377,11 @@ var statsConsole = {
         let hBar = opts.hBar || "-";
         let vbar = opts.vBar || "|";
         let spacing = opts.spacing || " ";
-
+        
         let boxHeight = logs.length - 1;
         let boxWidth = totalWidth - 3; // Inside of the box
         let borderWidth = 5;
-
+        
         let addSpace = 0;
         if (!(boxWidth % 2 === 0)) {
             addSpace = 1;
@@ -369,8 +395,8 @@ var statsConsole = {
             '0': '#666666',
             'highlight': '#ffff00',
         };
-
-
+        
+        
         var outputLog = leftTopCorner + hBar.repeat(((boxWidth - title.length) / 2)) + title + hBar.repeat(((boxWidth - title.length) / 2) + addSpace) + rightTopCorner + "\n";
         for (let i = 0; i < boxHeight; i++) { // Y coordinate |
             let severity = Memory.stats.logs[i][0, 1];
@@ -381,13 +407,13 @@ var statsConsole = {
             let htmlStart = "<log severity=\"" + severity + "\"><span style='color: " + colors[severity] + "' severity='" + severity + "'><log severity=\"" + severity + "\">";
             //let htmlEnd = "</font>";
             let htmlEnd = "</span></log>";
-
+            
             /*            let htmlFontStart = "<log severity=" + severity + ">";
              let htmlStart = "<log severity=" + severity + ">";
              //let htmlEnd = "</font>";
              let htmlEnd = "</log>";*/
-
-
+            
+            
             if (severity > 5) {
                 seveirty = 5;
             } else if (severity < 0) {
@@ -399,7 +425,7 @@ var statsConsole = {
              }*/ else {
                 htmlStart = htmlFontStart;
             }
-
+            
             if (message.length > boxWidth) { // message is longer than boxWidth
                 outputLog = outputLog +
                     vbar +
@@ -482,7 +508,7 @@ var statsConsole = {
      * @api public
      */
     displayConsoleLogs: function (logs = Memory.stats.logs, opts = {}) {
-
+        
         let totalWidth = opts.width || 100;
         let title = opts.title || " Logs ";
         let leftTopCorner = opts.leftTopCorner || "?";
@@ -492,11 +518,11 @@ var statsConsole = {
         let hBar = opts.hBar || "?";
         let vbar = opts.vBar || "?";
         let spacing = opts.spacing || " ";
-
+        
         let boxHeight = logs.length - 1;
         let boxWidth = totalWidth - 3; // Inside of the box
         let borderWidth = 5;
-
+        
         let addSpace = 0;
         if (!(boxWidth % 2 === 0)) {
             addSpace = 1;
@@ -510,8 +536,8 @@ var statsConsole = {
             '0': '#666666',
             'highlight': '#ffff00',
         };
-
-
+        
+        
         console.log(leftTopCorner + hBar.repeat(((boxWidth - title.length) / 2)) + title + hBar.repeat(((boxWidth - title.length) / 2) + addSpace) + rightTopCorner);
         for (let i = 0; i < boxHeight; i++) { // Y coordinate |
             let severity = Memory.stats.logs[i][0, 1];
@@ -522,13 +548,13 @@ var statsConsole = {
             let htmlStart = "<log severity=\"" + severity + "\"><span style='color: " + colors[severity] + "' severity='" + severity + "'><log severity=\"" + severity + "\">";
             //let htmlEnd = "</font>";
             let htmlEnd = "</log>";
-
+            
             /*            let htmlFontStart = "<log severity=" + severity + ">";
              let htmlStart = "<log severity=" + severity + ">";
              //let htmlEnd = "</font>";
              let htmlEnd = "</log>";*/
-
-
+            
+            
             if (severity > 5) {
                 seveirty = 5;
             } else if (severity < 0) {
@@ -540,7 +566,7 @@ var statsConsole = {
              }*/ else {
                 htmlStart = htmlFontStart;
             }
-
+            
             if (message.length > boxWidth) { // message is longer than boxWidth
                 console.log(htmlStart +
                     vbar +
@@ -585,7 +611,7 @@ var statsConsole = {
         }
         let tick = hBar + " Tick: " + Game.time + " ";
         console.log(leftBottomCorner + tick + hBar.repeat(boxWidth - tick.length) + rightBottomCorner);
-
+        
         return true;
     }
 };
